@@ -7,6 +7,9 @@ kb_profile = [
     ],
     [
         KeyboardButton(text='Мои запросы')
+    ],
+    [
+        KeyboardButton(text='О боте')
     ]]
 keyboard_profile = ReplyKeyboardMarkup(keyboard=kb_profile, resize_keyboard=True, one_time_keyboard=True)
 
@@ -34,6 +37,9 @@ kb_admin = [
     ],
     [
         KeyboardButton(text='Ответить на запрос')
+    ],
+    [
+        KeyboardButton(text='О боте')
     ]]
 keyboard_admin = ReplyKeyboardMarkup(keyboard=kb_admin, resize_keyboard=True)
 

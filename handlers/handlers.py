@@ -1,7 +1,7 @@
 from aiogram import F, Router, Bot
 from aiogram.filters import Command
 from aiogram.types import Message
-from utils.config import admin_id
+from utils.config import admin_id, username, links
 from aiogram.fsm.context import FSMContext
 from utils.states import Distribution, Ticket, AnswerTicket
 from db import Database
@@ -171,6 +171,10 @@ async def cmd_unanswered_tickets(message: Message):
         for i in db.get_un_answered_tickets():
             result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\n\n'
         await message.answer(result)
+
+@handler.message(F.text == 'О боте')
+async def cmd_unanswered_tickets(message: Message):
+    await message.answer(f'Создатель бота: {username}\n\nДополнительные ссылки: {links}')
 
 
 
