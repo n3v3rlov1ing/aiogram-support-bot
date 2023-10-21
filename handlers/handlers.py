@@ -16,8 +16,12 @@ def isadmin(id):
 
 @handler.message(Command('start'))
 async def cmd_start(message: Message):
+    kb = [[
+        KeyboardButton(text='Профиль')
+    ]]
+    keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
     if db.user_exist(message.from_user.id) == True:
-        await message.answer(f'Привет, {message.from_user.first_name}')
+        await message.answer(f'Привет, {message.from_user.first_name}', reply_markup=keyboard)
     else:
         db.reg_user(message.from_user.id)
         await message.answer(f'{message.from_user.first_name}, вы были успешно зарегистрированы!')
@@ -26,6 +30,7 @@ async def cmd_start(message: Message):
 @handler.message(F.text == 'Рассылка')
 async def cmd_admin(message: Message, state: FSMContext):
     if message.from_user.id == admin_id:
+
         await state.set_state(Distribution.text)
         await message.answer('Введите текст рассылки')
 
@@ -75,9 +80,10 @@ async def cmd_admin(message: Message):
         ],
         [
             KeyboardButton(text='Статистика')
-        ]]
+        ]
+        ]
         keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-        await message.answer('Вы админ', reply_markup=keyboard)
+        await message.answer('Добро пожаловать в админ-панель!', reply_markup=keyboard)
 
 
 @handler.message(F.text == 'Статистика')
@@ -85,6 +91,18 @@ async def cmd_stats(message: Message):
     if isadmin(message.from_user.id) == True:
         await message.answer(f'Статистика бота:\nПользователей: {db.count_users()}')
 
+@handler.message(F.text == 'Профиль')
+@handler.message(Command('profile'))
+async def cmd_stats(message: Message):
+    kb = [
+        [
+        KeyboardButton(text='Создать тикет')
+    ],
+    [
+        KeyboardButton(text='Мои запросы')
+    ]]
+    keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
+    await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}', reply_markup=keyboard)
 
 
 
