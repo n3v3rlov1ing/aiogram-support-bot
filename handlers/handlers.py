@@ -136,7 +136,7 @@ async def cmd_unanswered_tickets(message: Message):
         result = ''
         for i in db.get_un_answered_tickets():
             result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\n\n'
-        await message.answer(result, reply_markup=kb_admin)
+        await message.answer(result)
 
 
 

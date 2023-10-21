@@ -28,11 +28,9 @@ kb_admin = [
     ],
     [
         KeyboardButton(text='Рассылка')
-    ]]
-keyboard_admin = ReplyKeyboardMarkup(keyboard=kb_admin, resize_keyboard=True, one_time_keyboard=True)
-
-kb_return = [
-        [
+    ],
+    [
         KeyboardButton(text='Профиль')
     ]]
-keyboard_return = ReplyKeyboardMarkup(keyboard=kb_return, resize_keyboard=True, one_time_keyboard=True)
+keyboard_admin = ReplyKeyboardMarkup(keyboard=kb_admin, resize_keyboard=True)
+
