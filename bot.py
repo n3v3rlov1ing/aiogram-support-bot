@@ -3,6 +3,7 @@ from aiogram import Bot, Dispatcher, Router
 from handlers.handlers import handler
 import asyncio
 from utils.config import token
+from utils.filters import IsAdmin
 
 async def main():
     bot = Bot(token)

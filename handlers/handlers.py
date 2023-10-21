@@ -8,12 +8,10 @@ from db import Database
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import ExceptionMessageFilter
 from utils.keyboard import *
+from utils.filters import IsAdmin
 
 db = Database()
 handler = Router()
-
-def isadmin(id):
-    return bool(id==admin_id)
 
 @handler.message(Command('start'))
 async def cmd_start(message: Message):
@@ -27,13 +25,11 @@ async def cmd_start(message: Message):
         db.reg_user(message.from_user.id)
         await message.answer(f'{message.from_user.first_name}, вы были успешно зарегистрированы!')
 
-@handler.message(Command('send'))
+@handler.message(Command('send'), IsAdmin())
 @handler.message(F.text == 'Рассылка')
 async def cmd_admin(message: Message, state: FSMContext):
-    if message.from_user.id == admin_id:
-
-        await state.set_state(Distribution.text)
-        await message.answer('Введите текст рассылки')
+    await state.set_state(Distribution.text)
+    await message.answer('Введите текст рассылки')
 
 @handler.message(Distribution.text)
 async def load_text(message: Message, state: FSMContext):
@@ -73,32 +69,32 @@ async def load_photo(message: Message, state: FSMContext, bot: Bot):
         await message.answer(f'Рассылка завершена!\nПолучено: {db.count_users()-errors}')
         await state.clear()
 
-@handler.message(Command('admin'))
+@handler.message(Command('admin'), IsAdmin())
 async def cmd_admin(message: Message):
-    if isadmin(message.from_user.id) == True:
-        kb = [[
-            KeyboardButton(text='Рассылка'),
-        ],
-        [
-            KeyboardButton(text='Статистика')
-        ]
-        ]
-        keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-        await message.answer('Добро пожаловать в админ-панель!', reply_markup=keyboard)
+    kb = [[
+        KeyboardButton(text='Рассылка'),
+    ],
+    [
+        KeyboardButton(text='Статистика')
+    ]
+    ]
+    keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+    await message.answer('Добро пожаловать в админ-панель!', reply_markup=keyboard)
 
 
-@handler.message(F.text == 'Статистика')
+@handler.message(F.text == 'Статистика', IsAdmin())
 async def cmd_stats(message: Message):
-    if isadmin(message.from_user.id) == True:
-        await message.answer(f'Статистика бота:\nПользователей: {db.count_users()}')
+    await message.answer(f'Статистика бота:\nПользователей: {db.count_users()}')
+
+@handler.message(F.text == 'Профиль', IsAdmin())
+@handler.message(Command('profile'))
+async def cmd_stats(message: Message):
+    await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}\nСтатус: Администратор', reply_markup=keyboard_admin)
 
 @handler.message(F.text == 'Профиль')
 @handler.message(Command('profile'))
-async def cmd_stats(message: Message):
-    if isadmin(message.from_user.id) == True:
-        await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}\nСтатус: Администратор', reply_markup=keyboard_admin)
-    else:
-        await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}', reply_markup=keyboard_profile)
+async def cmd_profile(message: Message):
+    await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}', reply_markup=keyboard_profile)
 
 @handler.message(F.text == 'Создать тикет')
 async def cmd_create_ticket(message: Message, state: FSMContext):
@@ -130,11 +126,10 @@ async def cmd_mytickets(message: Message):
     await message.answer(result)
 
 
-@handler.message(F.text == 'Ответить на запрос')
+@handler.message(F.text == 'Ответить на запрос', IsAdmin())
 async def cmd_unanswered_tickets(message: Message, state: FSMContext):
-    if isadmin(message.from_user.id) == True:
-        await state.set_state(AnswerTicket.id)
-        await message.answer('Введите ID запроса для ответа')
+    await state.set_state(AnswerTicket.id)
+    await message.answer('Введите ID запроса для ответа')
         
 @handler.message(AnswerTicket.id)
 async def load_ticket_id(message: Message, state: FSMContext):
@@ -166,7 +161,7 @@ async def load_ticket_id(message: Message, state: FSMContext, bot: Bot):
 
 @handler.message(F.text == 'Неотвеченные тикеты')
 async def cmd_unanswered_tickets(message: Message):
-    if isadmin(message.from_user.id) == True:
+    # if isadmin(message.from_user.id) == True:
         result = ''
         for i in db.get_un_answered_tickets():
             result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\n\n'
