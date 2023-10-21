@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from utils.config import admin_id
 from aiogram.fsm.context import FSMContext
-from utils.states import Distribution, Ticket
+from utils.states import Distribution, Ticket, AnswerTicket
 from db import Database
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import ExceptionMessageFilter
@@ -75,7 +75,7 @@ async def load_photo(message: Message, state: FSMContext, bot: Bot):
 
 @handler.message(Command('admin'))
 async def cmd_admin(message: Message):
-    if message.from_user.id == admin_id:
+    if isadmin(message.from_user.id) == True:
         kb = [[
             KeyboardButton(text='Рассылка'),
         ],
@@ -97,7 +97,6 @@ async def cmd_stats(message: Message):
 async def cmd_stats(message: Message):
     if isadmin(message.from_user.id) == True:
         await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}\nСтатус: Администратор', reply_markup=keyboard_admin)
-        
     else:
         await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}', reply_markup=keyboard_profile)
 
@@ -120,7 +119,7 @@ async def load_ticket_priority(message: Message, state: FSMContext, bot: Bot):
     text = data['text']
     priority = data['priority']
     db.reg_ticket(message.from_user.id, text, priority)
-    await bot.send_message(admin_id, f'Запрос №{db.get_id_byuserid(message.from_user.id)}: @{message.from_user.username}\n\nЗапрос: {text}\nПриоритет ответа: {priority}')
+    await bot.send_message(admin_id, f'Запрос №{db.get_info2(message.from_user.id)} от @{message.from_user.username}\n\nЗапрос: {text}\nПриоритет ответа: {priority}')
     await state.clear()
 
 @handler.message(F.text == 'Мои запросы')
@@ -129,6 +128,41 @@ async def cmd_mytickets(message: Message):
     for i in db.get_info(message.from_user.id):
         result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\nОтвет: {i[3]}\n\n'
     await message.answer(result)
+
+
+@handler.message(F.text == 'Ответить на запрос')
+async def cmd_unanswered_tickets(message: Message, state: FSMContext):
+    if isadmin(message.from_user.id) == True:
+        await state.set_state(AnswerTicket.id)
+        await message.answer('Введите ID запроса для ответа')
+        
+@handler.message(AnswerTicket.id)
+async def load_ticket_id(message: Message, state: FSMContext):
+    await state.update_data(id = message.text)
+    user_data = await state.get_data()
+    req_id = user_data['id']
+    info = db.get_info_byid(req_id)
+    if db.is_answered(req_id) == True:
+        await message.answer('Вы уже отвечали на данный запрос!', reply_markup=keyboard_admin)
+    else:
+        await message.answer(f'Запрос №{req_id}\n\nВопрос: {info[0]}\nПриоритет: {info[1]}')
+        await message.answer(f'Введите ответ на запрос №{req_id}')
+        await state.set_state(AnswerTicket.text)
+
+
+@handler.message(AnswerTicket.text)
+async def load_ticket_id(message: Message, state: FSMContext, bot: Bot):
+    await state.update_data(text = message.text)
+    user_data = await state.get_data()
+    req_id = user_data['id']
+    text = user_data['text']
+    db.answer_ticket(text, req_id)
+    await message.answer(f'Ответ на запрос №{req_id} успешно отправлен!\n\nТекст: {text}', reply_markup=keyboard_admin)
+    user_id = db.get_info_byid(req_id)[3]
+    id = db.get_info_byid(req_id)[0]
+    await bot.send_message(user_id, f'Поступил ответ от администратора:\n\nID:{id}\nОтвет: {text}')
+    await state.clear()
+
 
 @handler.message(F.text == 'Неотвеченные тикеты')
 async def cmd_unanswered_tickets(message: Message):

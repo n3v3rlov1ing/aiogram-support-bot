@@ -23,7 +23,7 @@ kb_priority = [
 keyboard_priority = ReplyKeyboardMarkup(keyboard=kb_priority, resize_keyboard=True, one_time_keyboard=True)
 
 kb_admin = [
-        [
+    [
         KeyboardButton(text='Неотвеченные тикеты')
     ],
     [
@@ -31,6 +31,9 @@ kb_admin = [
     ],
     [
         KeyboardButton(text='Профиль')
+    ],
+    [
+        KeyboardButton(text='Ответить на запрос')
     ]]
 keyboard_admin = ReplyKeyboardMarkup(keyboard=kb_admin, resize_keyboard=True)
 

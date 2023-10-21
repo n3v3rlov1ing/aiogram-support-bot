@@ -8,4 +8,8 @@ class Ticket(StatesGroup):
     text = State()
     priority = State()
 
+class AnswerTicket(StatesGroup):
+    id = State()
+    text = State()
+
     

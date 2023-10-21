@@ -27,4 +27,16 @@ class Database():
     def get_un_answered_tickets(self):
         response = self.cursor.execute('SELECT id, text, priority FROM tickets WHERE state = 0 LIMIT 10').fetchall()
         return response
+    def answer_ticket(self, answer, req_id):
+        self.cursor.execute('UPDATE tickets SET answer = ?, state = 1 WHERE id = ? AND state = 0', [answer, req_id])
+        self.conn.commit()
+    def get_info_byid(self, req_id):
+        response = self.cursor.execute('SELECT id, text, priority, user_id FROM tickets WHERE id = ?', [req_id,]).fetchall()
+        return response[0]
+    def get_info2(self, user_id):
+        response = self.cursor.execute('SELECT id FROM tickets WHERE user_id = ? AND state = 0', [user_id]).fetchone()
+        return response[0]
+    def is_answered(self, id):
+        response = self.cursor.execute('SELECT state FROM tickets WHERE id = ?', [id]).fetchone()
+        return bool(response[0])
 
