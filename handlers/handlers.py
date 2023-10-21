@@ -13,6 +13,23 @@ from utils.filters import IsAdmin
 db = Database()
 handler = Router()
 
+@handler.message(F.text == 'Отмена', IsAdmin())
+async def cancel_handler(message: Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.clear()
+    await message.answer('Действие отменено!', reply_markup=keyboard_admin)
+
+@handler.message(F.text == 'Отмена')
+async def cancel_handler(message: Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.clear()
+    await message.answer('Действие отменено!', reply_markup=keyboard_profile)
+
+
 @handler.message(Command('start'))
 async def cmd_start(message: Message):
     kb = [[
@@ -26,15 +43,15 @@ async def cmd_start(message: Message):
         await message.answer(f'{message.from_user.first_name}, вы были успешно зарегистрированы!')
 
 @handler.message(Command('send'), IsAdmin())
-@handler.message(F.text == 'Рассылка')
+@handler.message(F.text == 'Рассылка', IsAdmin())
 async def cmd_admin(message: Message, state: FSMContext):
     await state.set_state(Distribution.text)
-    await message.answer('Введите текст рассылки')
+    await message.answer('Введите текст рассылки', reply_markup=keyboard_cancel)
 
 @handler.message(Distribution.text)
 async def load_text(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
-    await message.answer('Укажите фото. 0 - для рассылки без фотографии.')
+    await message.answer('Укажите фото. 0 - для рассылки без фотографии.', reply_markup=keyboard_cancel)
     await state.set_state(Distribution.photo)
 
 @handler.message(Distribution.photo)
@@ -87,7 +104,7 @@ async def cmd_stats(message: Message):
     await message.answer(f'Статистика бота:\nПользователей: {db.count_users()}')
 
 @handler.message(F.text == 'Профиль', IsAdmin())
-@handler.message(Command('profile'))
+@handler.message(Command('profile'), IsAdmin())
 async def cmd_stats(message: Message):
     await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}\nСтатус: Администратор', reply_markup=keyboard_admin)
 
@@ -98,7 +115,7 @@ async def cmd_profile(message: Message):
 
 @handler.message(F.text == 'Создать тикет')
 async def cmd_create_ticket(message: Message, state: FSMContext):
-    await message.answer('Введите сообщение для администратора')
+    await message.answer('Введите сообщение для администратора', reply_markup=keyboard_cancel)
     await state.set_state(Ticket.text)
 
 @handler.message(Ticket.text)
@@ -129,7 +146,7 @@ async def cmd_mytickets(message: Message):
 @handler.message(F.text == 'Ответить на запрос', IsAdmin())
 async def cmd_unanswered_tickets(message: Message, state: FSMContext):
     await state.set_state(AnswerTicket.id)
-    await message.answer('Введите ID запроса для ответа')
+    await message.answer('Введите ID запроса для ответа', reply_markup=keyboard_cancel)
         
 @handler.message(AnswerTicket.id)
 async def load_ticket_id(message: Message, state: FSMContext):
@@ -159,17 +176,17 @@ async def load_ticket_id(message: Message, state: FSMContext, bot: Bot):
     await state.clear()
 
 
-@handler.message(F.text == 'Неотвеченные тикеты')
+@handler.message(F.text == 'Неотвеченные тикеты', IsAdmin())
 async def cmd_unanswered_tickets(message: Message):
-    # if isadmin(message.from_user.id) == True:
-        result = ''
-        for i in db.get_un_answered_tickets():
-            result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\n\n'
-        await message.answer(result)
+    result = ''
+    for i in db.get_un_answered_tickets():
+        result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\n\n'
+    await message.answer(result)
 
 @handler.message(F.text == 'О боте')
 async def cmd_unanswered_tickets(message: Message):
     await message.answer(f'Создатель бота: {username}\n\nДополнительные ссылки: {links}')
+
 
 
 

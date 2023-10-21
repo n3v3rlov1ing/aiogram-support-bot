@@ -22,6 +22,9 @@ kb_priority = [
     ],
     [
         KeyboardButton(text='Высокий')
+    ],
+    [
+        KeyboardButton(text='Отмена')
     ]]
 keyboard_priority = ReplyKeyboardMarkup(keyboard=kb_priority, resize_keyboard=True, one_time_keyboard=True)
 
@@ -43,4 +46,9 @@ kb_admin = [
     ]]
 keyboard_admin = ReplyKeyboardMarkup(keyboard=kb_admin, resize_keyboard=True)
 
-
+kb_cancel = [
+    [
+        KeyboardButton(text='Отмена')
+    ]
+]
+keyboard_cancel = ReplyKeyboardMarkup(keyboard=kb_cancel, resize_keyboard=True)
