@@ -1,5 +1,4 @@
 import sqlite3
-import asyncio
 
 class Database():
     def __init__(self):
@@ -38,4 +37,3 @@ class Database():
     def is_answered(self, id):
         response = self.cursor.execute('SELECT state FROM tickets WHERE id = ?', [id]).fetchone()
         return bool(response[0])
-
