@@ -3,7 +3,6 @@ import asyncio
 
 class Database():
     def __init__(self):
-        path = 'D:\aiogram-support-bot\database\database.db' 
         self.conn = sqlite3.connect('database.db', check_same_thread=False)
         self.cursor = self.conn.cursor()
     def get_users(self):
