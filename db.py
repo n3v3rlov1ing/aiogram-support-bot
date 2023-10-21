@@ -18,3 +18,13 @@ class Database():
     def count_users(self):
         response = self.cursor.execute('SELECT COUNT (user_id) FROM USERS').fetchall()
         return response[0][0]
+    def reg_ticket(self, user_id, text, priority):
+        self.cursor.execute('INSERT INTO tickets (user_id, text, priority, state) VALUES (?, ?, ?, 0)', [user_id, text, priority])
+        self.conn.commit()
+    def get_info(self, user_id):
+        response = self.cursor.execute('SELECT id, text, priority, answer FROM tickets WHERE user_id = ? LIMIT 5', [user_id]).fetchall()
+        return response
+    def get_un_answered_tickets(self):
+        response = self.cursor.execute('SELECT id, text, priority FROM tickets WHERE state = 0 LIMIT 10').fetchall()
+        return response
+

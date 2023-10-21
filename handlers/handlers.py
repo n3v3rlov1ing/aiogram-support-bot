@@ -3,10 +3,11 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from utils.config import admin_id
 from aiogram.fsm.context import FSMContext
-from utils.states import Distribution
+from utils.states import Distribution, Ticket
 from db import Database
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import ExceptionMessageFilter
+from utils.keyboard import *
 
 db = Database()
 handler = Router()
@@ -94,16 +95,48 @@ async def cmd_stats(message: Message):
 @handler.message(F.text == 'Профиль')
 @handler.message(Command('profile'))
 async def cmd_stats(message: Message):
-    kb = [
-        [
-        KeyboardButton(text='Создать тикет')
-    ],
-    [
-        KeyboardButton(text='Мои запросы')
-    ]]
-    keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
-    await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}', reply_markup=keyboard)
+    if isadmin(message.from_user.id) == True:
+        await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}\nСтатус: Администратор', reply_markup=keyboard_admin)
+        
+    else:
+        await message.answer(f'Профиль {message.from_user.first_name}:\n\nID: {message.from_user.id}', reply_markup=keyboard_profile)
 
+@handler.message(F.text == 'Создать тикет')
+async def cmd_create_ticket(message: Message, state: FSMContext):
+    await message.answer('Введите сообщение для администратора')
+    await state.set_state(Ticket.text)
+
+@handler.message(Ticket.text)
+async def load_ticket_text(message: Message, state: FSMContext):
+    await state.update_data(text=message.text)
+    await state.set_state(Ticket.priority)
+    await message.answer('Выберите приоритет ответа', reply_markup=keyboard_priority)
+
+@handler.message(Ticket.priority)
+async def load_ticket_priority(message: Message, state: FSMContext, bot: Bot):
+    await state.update_data(priority=message.text)
+    await message.answer('Ваш тикет успешно отправлен!', reply_markup=keyboard_profile)
+    data = await state.get_data()
+    text = data['text']
+    priority = data['priority']
+    db.reg_ticket(message.from_user.id, text, priority)
+    await bot.send_message(admin_id, f'Запрос №{db.get_id_byuserid(message.from_user.id)}: @{message.from_user.username}\n\nЗапрос: {text}\nПриоритет ответа: {priority}')
+    await state.clear()
+
+@handler.message(F.text == 'Мои запросы')
+async def cmd_mytickets(message: Message):
+    result = ''
+    for i in db.get_info(message.from_user.id):
+        result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\nОтвет: {i[3]}\n\n'
+    await message.answer(result)
+
+@handler.message(F.text == 'Неотвеченные тикеты')
+async def cmd_unanswered_tickets(message: Message):
+    if isadmin(message.from_user.id) == True:
+        result = ''
+        for i in db.get_un_answered_tickets():
+            result += f'ID: {i[0]}\nТекст: {i[1]}\nПриоритет: {i[2]}\n\n'
+        await message.answer(result, reply_markup=kb_admin)
 
 
 

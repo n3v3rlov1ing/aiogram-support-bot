@@ -4,4 +4,8 @@ class Distribution(StatesGroup):
     text = State()
     photo = State()
 
+class Ticket(StatesGroup):
+    text = State()
+    priority = State()
+
     
