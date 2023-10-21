@@ -1,6 +1,7 @@
 from utils.states import *
 from aiogram import Bot, Dispatcher, Router
-from handlers.handlers import handler
+from handlers.admin import admin_router
+from handlers.user import user_router
 import asyncio
 from utils.config import token
 from utils.filters import IsAdmin
@@ -8,7 +9,7 @@ from utils.filters import IsAdmin
 async def main():
     bot = Bot(token)
     dp = Dispatcher()
-    dp.include_router(handler)
+    dp.include_routers(admin_router, user_router)
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
