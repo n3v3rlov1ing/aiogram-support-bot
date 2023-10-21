@@ -120,7 +120,7 @@ async def load_ticket_id(message: Message, state: FSMContext, bot: Bot):
     await message.answer(f'Ответ на запрос №{req_id} успешно отправлен!\n\nТекст: {text}', reply_markup=keyboard_admin)
     user_id = db.get_info_byid(req_id)[3]
     id = db.get_info_byid(req_id)[0]
-    await bot.send_message(user_id, f'Поступил ответ от администратора:\n\nID:{id}\nОтвет: {text}')
+    await bot.send_message(user_id, f'Поступил ответ от администратора:\n\nВаш вопрос: {text}\nID: {id}\nОтвет: {text}')
     await state.clear()
 
 
