@@ -49,6 +49,7 @@ async def load_photo(message: Message, state: FSMContext, bot: Bot):
         await message.answer(f'Рассылка завершена!\n\nУдачно: {db.count_users()-errors}')
         
     else:
+        errors = 0
         file_id = message.photo[-1].file_id
         await state.update_data(photo=file_id)
         user_data = await state.get_data()
@@ -63,7 +64,7 @@ async def load_photo(message: Message, state: FSMContext, bot: Bot):
         except TypeError:
             await message.answer('Загрузите фото еще раз!')
             await state.set_state(Distribution.photo)
-        await message.answer(f'Рассылка завершена!\nПолучено: {db.get_users()-errors}')
+        await message.answer(f'Рассылка завершена!\nПолучено: {db.count_users()-errors}')
         await state.clear()
 
 @handler.message(Command('admin'))
