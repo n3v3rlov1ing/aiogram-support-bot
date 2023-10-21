@@ -15,4 +15,6 @@ class Database():
     def user_exist(self, user_id):
         response = self.cursor.execute('SELECT user_id FROM users WHERE user_id = ?', [user_id,]).fetchone()
         return bool(response)
-
+    def count_users(self):
+        response = self.cursor.execute('SELECT COUNT (user_id) FROM USERS').fetchall()
+        return response[0][0]
